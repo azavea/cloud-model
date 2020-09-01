@@ -1,0 +1,6 @@
+[BATCH]
+gpu_job_def=raster-vision-pytorch-latest-gpu
+cpu_job_def=raster-vision-pytorch-latest-cpu
+gpu_job_queue=teamRasterVisionGpuJobQueue
+cpu_job_queue=teamRasterVisionCpuJobQueue
+attempts=1
