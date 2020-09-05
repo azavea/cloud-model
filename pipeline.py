@@ -46,9 +46,10 @@ def hrefs_to_sceneconfig(hrefs: Tuple[str, str], name: str,
         raster_source=RasterizedSourceConfig(
             vector_source=GeoJSONVectorSourceConfig(
                 uri=hrefs[1],
-                # class_id_to_filter=class_id_filter_dict, # XXX prevents rasterization
+                class_id_to_filter=class_id_filter_dict,
                 default_class_id=0),
-            rasterizer_config=RasterizerConfig(background_class_id=0)))
+            rasterizer_config=RasterizerConfig(background_class_id=0)
+        ))
     return SceneConfig(
         id=name, raster_source=raster_source, label_source=label_source)
 
@@ -100,7 +101,7 @@ def get_config(runner, root_uri, catalogs, epochs):
         1: ['==', 'default', 'Cloud'],
     }
     class_config: ClassConfig = ClassConfig(
-        names=["Cloud", "Background"], colors=["cyan", "brown"])
+        names=['Background', 'Cloud'], colors=["brown", "cyan"])
 
     # Read STAC catalog(s)
     scenes = []
