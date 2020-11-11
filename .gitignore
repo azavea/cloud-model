@@ -1,1 +1,5 @@
 __pycache__/
+ids.txt
+catalogs.json
+*.tif
+*.tar

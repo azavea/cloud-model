@@ -3,17 +3,28 @@
 # Build Image #
 
 ```bash
-docker build . --tag raster-vision:pytorch-pystac-7abe1e8
+docker build -t raster-vision:cloud-model -f Dockerfile .
 ```
 
 # Run Container #
 
 ```bash
-docker run --runtime=nvidia -it --rm -v $HOME/.aws:/root/.aws:ro -w /workdir raster-vision:pytorch-pystac-7abe1e8 bash
+docker run --name cloud-model -it --rm --runtime=nvidia --shm-size 16G \
+       -v $HOME/.aws:/root/.aws:ro \
+       -v $(pwd):/workdir \
+       -w /workdir \
+       raster-vision:cloud-model bash
 ```
 
-# Invoke Raster-Vision #
+# Invoke #
 
 ```bash
-rastervision run batch /workdir/pipeline.py -a root_uri s3://mybucket/mypath/hand/ -a catalogs /vsitar//vsis3/mybucket/catalog.tar -a epochs 1
+rastervision run inprocess /workdir/pipeline.py \
+       -a root_uri /tmp/xxx \
+       -a analyze_uri /tmp/xxx/analyze \
+       -a chip_uri /tmp/xxx/chips \
+       -a json catalogs.json \
+       -a epochs 2 \
+       -a batch_sz 2 \
+       analyze chip
 ```
