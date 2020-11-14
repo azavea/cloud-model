@@ -12,6 +12,7 @@ docker build -t raster-vision:cloud-model -f Dockerfile .
 docker run --name cloud-model -it --rm --runtime=nvidia --shm-size 16G \
        -v $HOME/.aws:/root/.aws:ro \
        -v $(pwd):/workdir \
+       -v $HOME/local/src/raster-vision:/opt/src:ro \
        -w /workdir \
        raster-vision:cloud-model bash
 ```

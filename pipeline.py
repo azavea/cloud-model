@@ -129,7 +129,6 @@ def get_scenes(
             _, labels, aoi = hrefs_from_catalog(
                 Catalog.from_file(root_of_tarball(catalog)))
             imagery = catalog_imagery.get('imagery')
-            # imagery = '/workdir/L1C-0.tif' # XXX
             h = hashlib.sha256(catalog.encode()).hexdigest()
             print('imagery', imagery)
             print('labels', labels)
@@ -155,13 +154,18 @@ def get_config(runner,
                json,
                chip_sz=512,
                batch_sz=16,
-               epochs=33):
+               epochs=33,
+               level='L1C'):
 
     chip_sz = int(chip_sz)
     epochs = int(epochs)
     batch_sz = int(batch_sz)
 
-    channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    if level == 'L1C':
+        channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    elif level == 'L2A':
+        channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
     num_channels = len(channel_order)
 
     class_config = ClassConfig(names=["background", "cloud"],
@@ -174,25 +178,14 @@ def get_config(runner,
 
     train_crops = []
     val_crops = []
-    # for x in range(0, 5):
-    #     for y in range(0, 5):
-    #         x_start = x / 5.0
-    #         x_end = 0.80 - x_start
-    #         y_start = y / 5.0
-    #         y_end = 0.80 - y_start
-    #         crop = [x_start, y_start, x_end, y_end]
-    #         if x == y:
-    #             val_crops.append(crop)
-    #         else:
-    #             train_crops.append(crop)
-    for x in range(0, 2):
-        for y in range(0, 2):
-            x_start = x / 2.0
-            x_end = 0.5 - x_start
-            y_start = y / 2.0
-            y_end = 0.5 - y_start
+    for x in range(0, 5):
+        for y in range(0, 5):
+            x_start = x / 5.0
+            x_end = 0.80 - x_start
+            y_start = y / 5.0
+            y_end = 0.80 - y_start
             crop = [x_start, y_start, x_end, y_end]
-            if x == 1 and y == 1:
+            if x == y:
                 val_crops.append(crop)
             else:
                 train_crops.append(crop)
@@ -257,6 +250,6 @@ def get_config(runner,
                                       train_chip_sz=chip_sz,
                                       predict_chip_sz=chip_sz,
                                       chip_options=chip_options,
-                                      chip_nodata_threshold=.50,
+                                      chip_nodata_threshold=.75,
                                       img_format='npy',
                                       label_format='npy')
