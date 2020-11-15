@@ -3,13 +3,14 @@
 import hashlib
 from functools import partial
 
-from pystac import STAC_IO, Catalog #, Collection, Item, MediaType
+from pystac import STAC_IO, Catalog  #, Collection, Item, MediaType
 from rastervision.core.backend import *
 from rastervision.core.data import *
 from rastervision.core.data import (
     ClassConfig, DatasetConfig, GeoJSONVectorSourceConfig,
     RasterioSourceConfig, RasterizedSourceConfig, RasterizerConfig,
-    SceneConfig, SemanticSegmentationLabelSourceConfig, CastTransformerConfig, StatsTransformerConfig)
+    SceneConfig, SemanticSegmentationLabelSourceConfig, CastTransformerConfig,
+    StatsTransformerConfig)
 from rastervision.core.rv_pipeline import *
 from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 from rastervision.pytorch_backend import *
@@ -155,11 +156,13 @@ def get_config(runner,
                chip_sz=512,
                batch_sz=16,
                epochs=33,
+               preshrink=1,
                level='L1C'):
 
     chip_sz = int(chip_sz)
     epochs = int(epochs)
     batch_sz = int(batch_sz)
+    preshrink = int(preshrink)
 
     if level == 'L1C':
         channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -216,7 +219,7 @@ def get_config(runner,
                                           name='cheaplab',
                                           entrypoint='make_cheaplab_model',
                                           entrypoint_kwargs={
-                                              'preshrink': 1,
+                                              'preshrink': preshrink,
                                               'num_channels': num_channels
                                           }))
 
