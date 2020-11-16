@@ -116,10 +116,12 @@ def get_scenes(
     channel_order: Sequence[int],
     class_config: ClassConfig,
     class_id_filter_dict: dict,
+    level: str,
     train_crops: List[CropOffsets] = [],
     val_crops: List[CropOffsets] = []
 ) -> Tuple[List[SceneConfig], List[SceneConfig]]:
 
+    assert (level in ['L1C', 'L2A'])
     train_scenes = []
     val_scenes = []
     with open(json_file, 'r') as f:
@@ -130,6 +132,7 @@ def get_scenes(
             _, labels, aoi = hrefs_from_catalog(
                 Catalog.from_file(root_of_tarball(catalog)))
             imagery = catalog_imagery.get('imagery')
+            imagery = imagery.replace('L1C-0.tif', f"{level}-0.tif")
             h = hashlib.sha256(catalog.encode()).hexdigest()
             print('imagery', imagery)
             print('labels', labels)
@@ -193,13 +196,11 @@ def get_config(runner,
             else:
                 train_crops.append(crop)
 
-    print('train_crops', train_crops)
-    print('val_crops', val_crops)
-
     scenes = get_scenes(json,
                         channel_order,
                         class_config,
                         class_id_filter_dict,
+                        level,
                         train_crops=train_crops,
                         val_crops=val_crops)
 
