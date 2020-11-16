@@ -29,7 +29,7 @@ rastervision run inprocess /workdir/pipeline.py \
        -a json catalogs.json \
        -a epochs 2 \
        -a batch_sz 2 \
-       analyze chip
+       chip
 ```
 
 ## Cloud ##

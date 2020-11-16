@@ -85,7 +85,7 @@ def hrefs_to_sceneconfig(
         class_id_filter_dict: Dict[int, str],
         extent_crop: Optional[CropOffsets] = None) -> SceneConfig:
 
-    transformers = [CastTransformerConfig(to_dtype='np.float32')]
+    transformers = [CastTransformerConfig(to_dtype='np.float16')]
     image_source = RasterioSourceConfig(
         uris=[imagery],
         allow_streaming=True,
@@ -157,7 +157,7 @@ def get_config(runner,
                chip_uri,
                json,
                chip_sz=512,
-               batch_sz=128,
+               batch_sz=32,
                epochs=33,
                preshrink=1,
                level='L1C'):
