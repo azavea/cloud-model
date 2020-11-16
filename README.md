@@ -19,6 +19,8 @@ docker run --name cloud-model -it --rm --runtime=nvidia --shm-size 16G \
 
 # Invoke #
 
+## Local ##
+
 ```bash
 rastervision run inprocess /workdir/pipeline.py \
        -a root_uri /tmp/xxx \
@@ -28,4 +30,32 @@ rastervision run inprocess /workdir/pipeline.py \
        -a epochs 2 \
        -a batch_sz 2 \
        analyze chip
+```
+
+## Cloud ##
+
+```bash
+(LEVEL='L1C' ; \
+ROOT="s3://bucket/prefix" ; \
+rastervision run batch /workdir/pipeline.py \
+       -a root_uri ${ROOT}/0 \
+       -a analyze_uri ${ROOT}/${LEVEL}/analyze \
+       -a chip_uri ${ROOT}/${LEVEL}/chips \
+       -a json catalogs.json \
+       -a level ${LEVEL} \
+       -s 800 \
+       chip)
+```
+
+```bash
+(LEVEL='L1C' ; \
+ROOT="s3://bucket/prefix" ; \
+rastervision run batch /workdir/pipeline.py \
+       -a root_uri ${ROOT}/0 \
+       -a analyze_uri ${ROOT}/${LEVEL}/analyze \
+       -a chip_uri ${ROOT}/${LEVEL}/chips \
+       -a json catalogs.json \
+       -a level ${LEVEL} \
+       -s 800 \
+       train)
 ```

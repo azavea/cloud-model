@@ -157,7 +157,7 @@ def get_config(runner,
                chip_uri,
                json,
                chip_sz=512,
-               batch_sz=16,
+               batch_sz=128,
                epochs=33,
                preshrink=1,
                level='L1C'):
@@ -244,7 +244,7 @@ def get_config(runner,
         preview_batch_limit=8)
 
     chip_options = SemanticSegmentationChipOptions(
-        window_method=SemanticSegmentationWindowMethod.sliding)
+        window_method=SemanticSegmentationWindowMethod.sliding, stride=chip_sz)
 
     return SemanticSegmentationConfig(root_uri=root_uri,
                                       analyze_uri=analyze_uri,

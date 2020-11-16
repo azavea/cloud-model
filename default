@@ -1,5 +1,5 @@
 [BATCH]
-gpu_job_queue=mcclain-gpu
+gpu_job_queue=mcclain-512-gpu
 gpu_job_def=raster-vision-jmcclain-gpu
 cpu_job_queue=mcclain-cpu
 cpu_job_def=raster-vision-jmcclain-cpu
