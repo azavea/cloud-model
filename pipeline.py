@@ -3,7 +3,7 @@
 import hashlib
 from functools import partial
 
-from pystac import STAC_IO, Catalog  #, Collection, Item, MediaType
+from pystac import STAC_IO, Catalog
 from rastervision.core.backend import *
 from rastervision.core.data import *
 from rastervision.core.data import (
@@ -160,12 +160,14 @@ def get_config(runner,
                batch_sz=32,
                epochs=33,
                preshrink=1,
+               architecture='cheaplab',
                level='L1C'):
 
     chip_sz = int(chip_sz)
     epochs = int(epochs)
     batch_sz = int(batch_sz)
     preshrink = int(preshrink)
+    assert (architecture in ['cheaplab', 'fpn-resnet18'])
 
     if level == 'L1C':
         channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -215,14 +217,30 @@ def get_config(runner,
         validation_scenes=validation_scenes,
     )
 
-    model = SemanticSegmentationModelConfig(
-        external_def=ExternalModuleConfig(github_repo='jamesmcclain/CheapLab',
-                                          name='cheaplab',
-                                          entrypoint='make_cheaplab_model',
-                                          entrypoint_kwargs={
-                                              'preshrink': preshrink,
-                                              'num_channels': num_channels
-                                          }))
+    if architecture == 'fpn-resnet18':
+        external_def = ExternalModuleConfig(
+            github_repo='AdeelH/pytorch-fpn:0.1',
+            name='pytorch-fpn',
+            entrypoint='make_segm_fpn_resnet',
+            entrypoint_kwargs={
+                'name': 'resnet18',
+                'fpn_type': 'fpn',
+                'num_classes': 2,
+                'fpn_channels': 256,
+                'in_channels': len(channel_order),
+                'out_size': (chip_sz, chip_sz)
+            })
+    else:
+        external_def = ExternalModuleConfig(
+            github_repo='jamesmcclain/CheapLab',
+            name='cheaplab',
+            entrypoint='make_cheaplab_model',
+            entrypoint_kwargs={
+                'preshrink': preshrink,
+                'num_channels': num_channels
+            })
+
+    model = SemanticSegmentationModelConfig(external_def=external_def)
 
     external_loss_def = ExternalModuleConfig(
         github_repo='jamesmcclain/CheapLab',
