@@ -160,6 +160,7 @@ def get_config(runner,
                batch_sz=32,
                epochs=33,
                preshrink=1,
+               small_test=False,
                architecture='cheaplab',
                level='L1C'):
 
@@ -207,6 +208,10 @@ def get_config(runner,
                         val_crops=val_crops)
 
     train_scenes, validation_scenes = scenes
+
+    if small_test:
+        train_scenes = train_scenes[0:2]
+        validation_scenes = validation_scenes[0:2]
 
     print(f"{len(train_scenes)} training scenes")
     print(f"{len(validation_scenes)} validation scenes")
