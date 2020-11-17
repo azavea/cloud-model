@@ -3,13 +3,14 @@
 import hashlib
 from functools import partial
 
-from pystac import STAC_IO, Catalog #, Collection, Item, MediaType
+from pystac import STAC_IO, Catalog  #, Collection, Item, MediaType
 from rastervision.core.backend import *
 from rastervision.core.data import *
 from rastervision.core.data import (
     ClassConfig, DatasetConfig, GeoJSONVectorSourceConfig,
     RasterioSourceConfig, RasterizedSourceConfig, RasterizerConfig,
-    SceneConfig, SemanticSegmentationLabelSourceConfig, CastTransformerConfig, StatsTransformerConfig)
+    SceneConfig, SemanticSegmentationLabelSourceConfig, CastTransformerConfig,
+    StatsTransformerConfig)
 from rastervision.core.rv_pipeline import *
 from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 from rastervision.pytorch_backend import *
@@ -84,7 +85,7 @@ def hrefs_to_sceneconfig(
         class_id_filter_dict: Dict[int, str],
         extent_crop: Optional[CropOffsets] = None) -> SceneConfig:
 
-    transformers = [CastTransformerConfig(to_dtype='np.float32')]
+    transformers = [CastTransformerConfig(to_dtype='np.float16')]
     image_source = RasterioSourceConfig(
         uris=[imagery],
         allow_streaming=True,
@@ -115,10 +116,12 @@ def get_scenes(
     channel_order: Sequence[int],
     class_config: ClassConfig,
     class_id_filter_dict: dict,
+    level: str,
     train_crops: List[CropOffsets] = [],
     val_crops: List[CropOffsets] = []
 ) -> Tuple[List[SceneConfig], List[SceneConfig]]:
 
+    assert (level in ['L1C', 'L2A'])
     train_scenes = []
     val_scenes = []
     with open(json_file, 'r') as f:
@@ -129,7 +132,7 @@ def get_scenes(
             _, labels, aoi = hrefs_from_catalog(
                 Catalog.from_file(root_of_tarball(catalog)))
             imagery = catalog_imagery.get('imagery')
-            # imagery = '/workdir/L1C-0.tif' # XXX
+            imagery = imagery.replace('L1C-0.tif', f"{level}-0.tif")
             h = hashlib.sha256(catalog.encode()).hexdigest()
             print('imagery', imagery)
             print('labels', labels)
@@ -154,14 +157,21 @@ def get_config(runner,
                chip_uri,
                json,
                chip_sz=512,
-               batch_sz=16,
-               epochs=33):
+               batch_sz=32,
+               epochs=33,
+               preshrink=1,
+               level='L1C'):
 
     chip_sz = int(chip_sz)
     epochs = int(epochs)
     batch_sz = int(batch_sz)
+    preshrink = int(preshrink)
 
-    channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    if level == 'L1C':
+        channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    elif level == 'L2A':
+        channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
     num_channels = len(channel_order)
 
     class_config = ClassConfig(names=["background", "cloud"],
@@ -174,36 +184,23 @@ def get_config(runner,
 
     train_crops = []
     val_crops = []
-    # for x in range(0, 5):
-    #     for y in range(0, 5):
-    #         x_start = x / 5.0
-    #         x_end = 0.80 - x_start
-    #         y_start = y / 5.0
-    #         y_end = 0.80 - y_start
-    #         crop = [x_start, y_start, x_end, y_end]
-    #         if x == y:
-    #             val_crops.append(crop)
-    #         else:
-    #             train_crops.append(crop)
-    for x in range(0, 2):
-        for y in range(0, 2):
-            x_start = x / 2.0
-            x_end = 0.5 - x_start
-            y_start = y / 2.0
-            y_end = 0.5 - y_start
+    for x in range(0, 5):
+        for y in range(0, 5):
+            x_start = x / 5.0
+            x_end = 0.80 - x_start
+            y_start = y / 5.0
+            y_end = 0.80 - y_start
             crop = [x_start, y_start, x_end, y_end]
-            if x == 1 and y == 1:
+            if x == y:
                 val_crops.append(crop)
             else:
                 train_crops.append(crop)
-
-    print('train_crops', train_crops)
-    print('val_crops', val_crops)
 
     scenes = get_scenes(json,
                         channel_order,
                         class_config,
                         class_id_filter_dict,
+                        level,
                         train_crops=train_crops,
                         val_crops=val_crops)
 
@@ -223,7 +220,7 @@ def get_config(runner,
                                           name='cheaplab',
                                           entrypoint='make_cheaplab_model',
                                           entrypoint_kwargs={
-                                              'preshrink': 1,
+                                              'preshrink': preshrink,
                                               'num_channels': num_channels
                                           }))
 
@@ -247,7 +244,7 @@ def get_config(runner,
         preview_batch_limit=8)
 
     chip_options = SemanticSegmentationChipOptions(
-        window_method=SemanticSegmentationWindowMethod.sliding)
+        window_method=SemanticSegmentationWindowMethod.sliding, stride=chip_sz)
 
     return SemanticSegmentationConfig(root_uri=root_uri,
                                       analyze_uri=analyze_uri,
@@ -257,6 +254,6 @@ def get_config(runner,
                                       train_chip_sz=chip_sz,
                                       predict_chip_sz=chip_sz,
                                       chip_options=chip_options,
-                                      chip_nodata_threshold=.50,
+                                      chip_nodata_threshold=.75,
                                       img_format='npy',
                                       label_format='npy')
