@@ -3,7 +3,8 @@
 # Build Image #
 
 ```bash
-docker build -t raster-vision:cloud-model -f Dockerfile .
+touch catalogs.json
+docker build -t cloud-model -f Dockerfile .
 ```
 
 # Run Container #
@@ -11,10 +12,7 @@ docker build -t raster-vision:cloud-model -f Dockerfile .
 ```bash
 docker run --name cloud-model -it --rm --runtime=nvidia --shm-size 16G \
        -v $HOME/.aws:/root/.aws:ro \
-       -v $(pwd):/workdir \
-       -v $HOME/local/src/raster-vision:/opt/src:ro \
-       -w /workdir \
-       raster-vision:cloud-model bash
+       cloud-model bash
 ```
 
 # Invoke #
@@ -22,40 +20,47 @@ docker run --name cloud-model -it --rm --runtime=nvidia --shm-size 16G \
 ## Local ##
 
 ```bash
+ROOT=/tmp/xxx ; \
 rastervision run inprocess /workdir/pipeline.py \
-       -a root_uri /tmp/xxx \
-       -a analyze_uri /tmp/xxx/analyze \
-       -a chip_uri /tmp/xxx/chips \
+       -a root_uri ${ROOT} \
+       -a analyze_uri ${ROOT}/analyze \
+       -a chip_uri ${ROOT}/chips \
        -a json catalogs.json \
        -a epochs 2 \
        -a batch_sz 2 \
+       -a small_test True \
+       chip train
+```
+
+## On AWS ##
+
+### Chip ###
+
+```bash
+LEVEL='L1C' ; \
+ROOT="s3://bucket/prefix" ; \
+rastervision run batch /workdir/pipeline.py \
+       -a root_uri ${ROOT}/0 \
+       -a analyze_uri ${ROOT}/${LEVEL}/analyze \
+       -a chip_uri ${ROOT}/${LEVEL}/chips \
+       -a json catalogs.json \
+       -a level ${LEVEL} \
+       -s 800 \
        chip
 ```
 
-## Cloud ##
+### Train ###
 
 ```bash
-(LEVEL='L1C' ; \
+LEVEL='L1C' ; \
+ARCH=cheaplab ; \
 ROOT="s3://bucket/prefix" ; \
 rastervision run batch /workdir/pipeline.py \
-       -a root_uri ${ROOT}/0 \
+       -a root_uri ${ROOT}/${ARCH}-${LEVEL} \
        -a analyze_uri ${ROOT}/${LEVEL}/analyze \
        -a chip_uri ${ROOT}/${LEVEL}/chips \
        -a json catalogs.json \
        -a level ${LEVEL} \
-       -s 800 \
-       chip)
-```
-
-```bash
-(LEVEL='L1C' ; \
-ROOT="s3://bucket/prefix" ; \
-rastervision run batch /workdir/pipeline.py \
-       -a root_uri ${ROOT}/0 \
-       -a analyze_uri ${ROOT}/${LEVEL}/analyze \
-       -a chip_uri ${ROOT}/${LEVEL}/chips \
-       -a json catalogs.json \
-       -a level ${LEVEL} \
-       -s 800 \
-       train)
+       -a architecture ${ARCH} \
+       train
 ```
