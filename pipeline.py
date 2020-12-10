@@ -9,8 +9,7 @@ from rastervision.core.data import *
 from rastervision.core.data import (
     ClassConfig, DatasetConfig, GeoJSONVectorSourceConfig,
     RasterioSourceConfig, RasterizedSourceConfig, RasterizerConfig,
-    SceneConfig, SemanticSegmentationLabelSourceConfig, CastTransformerConfig,
-    StatsTransformerConfig)
+    SceneConfig, SemanticSegmentationLabelSourceConfig, CastTransformerConfig)
 from rastervision.core.rv_pipeline import *
 from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 from rastervision.pytorch_backend import *
@@ -169,6 +168,7 @@ def get_config(runner,
     batch_sz = int(batch_sz)
     preshrink = int(preshrink)
     assert (architecture in ['cheaplab', 'fpn-resnet18'])
+    assert (level in ['L1C', 'L2A'])
 
     if level == 'L1C':
         channel_order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -237,7 +237,7 @@ def get_config(runner,
             })
     else:
         external_def = ExternalModuleConfig(
-            github_repo='jamesmcclain/CheapLab',
+            github_repo='jamesmcclain/CheapLab:08d260b',
             name='cheaplab',
             entrypoint='make_cheaplab_model',
             entrypoint_kwargs={
@@ -248,7 +248,7 @@ def get_config(runner,
     model = SemanticSegmentationModelConfig(external_def=external_def)
 
     external_loss_def = ExternalModuleConfig(
-        github_repo='jamesmcclain/CheapLab',
+        github_repo='jamesmcclain/CheapLab:08d260b',
         name='bce_loss',
         entrypoint='make_bce_loss',
         force_reload=False,
