@@ -1,9 +1,9 @@
-FROM quay.io/azavea/raster-vision:pytorch-1d37fe8
-
-RUN pip3 install --upgrade pystac==0.5.2 && apt-get install -y nano
+FROM quay.io/jmcclain/raster-vision-pytorch:Thu_Dec_10_05_00_51_UTC_2020
 
 COPY catalogs.json /workdir/catalogs.json
 COPY pipeline.py /workdir/pipeline.py
 COPY default /root/.rastervision/default
+
+WORKDIR /workdir
 
 CMD ["bash"]
