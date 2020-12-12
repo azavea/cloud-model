@@ -1,9 +1,8 @@
 ![The Clouds](https://upload.wikimedia.org/wikipedia/commons/4/46/Socrates_in_a_basket.jpg)
 
-# Build Image #
+# Training Build Image #
 
 ```bash
-touch catalogs.json
 docker build -t cloud-model -f Dockerfile .
 ```
 
