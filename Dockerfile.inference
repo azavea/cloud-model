@@ -1,4 +1,3 @@
-# docker build -f Dockerfile.inference -t quay.io/jmcclain/cloud-model:latest .
 FROM quay.io/jmcclain/raster-vision-pytorch:Thu_Dec_10_05_00_51_UTC_2020 
 
 # Models

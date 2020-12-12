@@ -1,22 +1,63 @@
 ![The Clouds](https://upload.wikimedia.org/wikipedia/commons/4/46/Socrates_in_a_basket.jpg)
 
-# Training Build Image #
+# Inference #
+
+## Obtain Docker Image ##
+
+Either build the docker image or pull it from quay.io.
+
+### Build ###
+
+(Note that the model bundles necessary to build this image are not currently checked into this repository.)
+
+```bash
+docker build -f Dockerfile.inference -t quay.io/jmcclain/cloud-model:latest .
+```
+
+### Pull from quay.io ###
+
+```
+docker pull quay.io/jmcclain/cloud-model:latest
+```
+
+## Perform Inference ##
+
+```bash
+docker run -it --rm \
+       --runtime=nvidia --shm-size 16G \
+       -v $HOME/Desktop/imagery:/input:ro \
+       -v /tmp:/output \
+       quay.io/jmcclain/cloud-model \
+          --infile /input/greenwhich/L2A-0.tif \
+          --outfile-final /output/final.tif \
+          --outfile-raw /output/raw.tif \
+          --level L2A \
+          --architectures both
+```
+
+# Training #
+
+## Build Docker Image ##
+
+(Note that the file `catalog.json`, which is necessary for building the image and training, is not currently checked into this repository.)
 
 ```bash
 docker build -t cloud-model -f Dockerfile .
 ```
 
-# Run Container #
+## Run Container ##
 
 ```bash
-docker run --name cloud-model -it --rm --runtime=nvidia --shm-size 16G \
+docker run -it --rm \
+       --name cloud-model --runtime=nvidia \
+       --shm-size 16G \
        -v $HOME/.aws:/root/.aws:ro \
        cloud-model bash
 ```
 
-# Invoke #
+## Invoke Raster-Vision ##
 
-## Local ##
+### Local ###
 
 ```bash
 ROOT=/tmp/xxx ; \
@@ -31,9 +72,9 @@ rastervision run inprocess /workdir/pipeline.py \
        chip train
 ```
 
-## On AWS ##
+### On AWS ###
 
-### Chip ###
+#### Chip ####
 
 ```bash
 LEVEL='L1C' ; \
@@ -48,7 +89,7 @@ rastervision run batch /workdir/pipeline.py \
        chip
 ```
 
-### Train ###
+#### Train ####
 
 ```bash
 LEVEL='L1C' ; \
