@@ -43,14 +43,25 @@ def torch_hub_load_local(hubconf_dir: str, entrypoint: str, *args, **kwargs):
 
 def command_line_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--architectures", required=False, nargs='+', choices=['cheaplab', 'fpn-resnet18'], default=['cheaplab', 'fpn-resnet18'])
+    parser.add_argument("--architectures",
+                        required=False,
+                        nargs='+',
+                        choices=['both', 'cheaplab', 'fpn-resnet18'],
+                        default=['cheaplab', 'fpn-resnet18'])
     parser.add_argument("--chunksize", required=False, type=int, default=64)
     parser.add_argument("--device", required=False, type=str, default="cuda")
-    parser.add_argument("--exit-early", required=False, type=bool, default=False)
+    parser.add_argument("--exit-early",
+                        required=False,
+                        type=bool,
+                        default=False)
     parser.add_argument("--infile", required=True, type=str)
-    parser.add_argument("--level", required=False, choices=['L2A', 'L1C'], default='L1C')
+    parser.add_argument("--level",
+                        required=False,
+                        choices=['L2A', 'L1C'],
+                        default='L1C')
     parser.add_argument("--outfile-final", required=True, type=str)
     parser.add_argument("--outfile-raw", required=True, type=str)
+    parser.add_argument("--preshrink", required=False, type=int, default=8)
     parser.add_argument("--stride", required=False, type=int, default=107)
     parser.add_argument("--window-size", required=False, type=int, default=256)
     return parser
@@ -82,23 +93,26 @@ if __name__ == '__main__':
 
     cheaplab_entrypoint = "make_cheaplab_model"
     cheaplab_hubconf_dir = "cheaplab"
-    cheaplab1_entrypoint_kwargs = {
-        "preshrink": 1,
-        "num_channels": len(channel_order),
-    }
-    cheaplab2_entrypoint_kwargs = {
-        "preshrink": 2,
+    cheaplab_entrypoint_kwargs = {
+        "preshrink": args.preshrink,
         "num_channels": len(channel_order),
     }
 
     if args.level == 'L1C':
         fpn_files = ["/workdir/models/fpn-resnet/L1C/0/train/model-bundle.zip"]
-        cheaplab1_files = ["/workdir/models/cheaplab/L1C/preshrink==1/0/train/model-bundle.zip"]
-        cheaplab2_files = ["/workdir/models/cheaplab/L1C/preshrink==2/0/train/model-bundle.zip"]
+        cheaplab_files = [
+            f"/workdir/models/cheaplab/L1C/{i}/train/model-bundle.zip"
+            for i in [0, 1]
+        ]
     elif args.level == 'L2A':
-        fpn_files = [f"/workdir/models/fpn-resnet/L2A/{i}/train/model-bundle.zip" for i in [0, 1]]
-        cheaplab1_files = ["/workdir/models/cheaplab/L2A/preshrink==1/0/train/model-bundle.zip"]
-        cheaplab2_files = [f"/workdir/models/cheaplab/L2A/preshrink==2/{i}/train/model-bundle.zip" for i in [0, 1]]
+        fpn_files = [
+            f"/workdir/models/fpn-resnet/L2A/{i}/train/model-bundle.zip"
+            for i in [0, 1]
+        ]
+        cheaplab_files = [
+            f"/workdir/models/cheaplab/L2A/{i}/train/model-bundle.zip"
+            for i in [0, 1, 2]
+        ]
 
     fpns = []
     for model_bundle in fpn_files:
@@ -106,35 +120,34 @@ if __name__ == '__main__':
             with tempfile.TemporaryDirectory() as tmpdirname:
                 zip_ref.extractall(tmpdirname)
                 model = torch_hub_load_local(
-                    f"{tmpdirname}/modules/{fpn_hubconf_dir}/",
-                    fpn_entrypoint, **fpn_entrypoint_kwargs)
+                    f"{tmpdirname}/modules/{fpn_hubconf_dir}/", fpn_entrypoint,
+                    **fpn_entrypoint_kwargs)
                 model = model.to(args.device)
-                model.load_state_dict(torch.load(f"{tmpdirname}/model.pth", map_location=torch.device(args.device)))
+                model.load_state_dict(
+                    torch.load(f"{tmpdirname}/model.pth",
+                               map_location=torch.device(args.device)))
                 model.eval()
                 fpns.append(model)
 
     cheaplabs = []
-    for model_bundle in cheaplab1_files + cheaplab2_files:
+    for model_bundle in cheaplab_files:
         with zipfile.ZipFile(model_bundle, 'r') as zip_ref:
             with tempfile.TemporaryDirectory() as tmpdirname:
                 zip_ref.extractall(tmpdirname)
-                if 'preshrink==1' in model_bundle:
-                    model = torch_hub_load_local(
-                        f"{tmpdirname}/modules/{cheaplab_hubconf_dir}/",
-                        cheaplab_entrypoint, **cheaplab1_entrypoint_kwargs)
-                elif 'preshrink==2' in model_bundle:
-                    model = torch_hub_load_local(
-                        f"{tmpdirname}/modules/{cheaplab_hubconf_dir}/",
-                        cheaplab_entrypoint, **cheaplab2_entrypoint_kwargs)
+                model = torch_hub_load_local(
+                    f"{tmpdirname}/modules/{cheaplab_hubconf_dir}/",
+                    cheaplab_entrypoint, **cheaplab_entrypoint_kwargs)
                 model = model.to(args.device)
-                model.load_state_dict(torch.load(f"{tmpdirname}/model.pth", map_location=torch.device(args.device)))
+                model.load_state_dict(
+                    torch.load(f"{tmpdirname}/model.pth",
+                               map_location=torch.device(args.device)))
                 model.eval()
                 cheaplabs.append(model)
 
     models = []
-    if 'cheaplab' in args.architectures:
+    if 'cheaplab' in args.architectures or 'both' in args.architectures:
         models += cheaplabs
-    if 'fpn-resnet18' in args.architectures:
+    if 'fpn-resnet18' in args.architectures or 'both' in args.architectures:
         models += fpns
 
     if args.exit_early:
@@ -159,9 +172,9 @@ if __name__ == '__main__':
         })
         width = infile_ds.width
         height = infile_ds.height
-        ar_out = torch.zeros(
-            (num_classes, height, width), dtype=torch.float32)
-        pixel_hits = torch.zeros((num_classes, height, width), dtype=torch.uint8)
+        ar_out = torch.zeros((num_classes, height, width), dtype=torch.float32)
+        pixel_hits = torch.zeros((num_classes, height, width),
+                                 dtype=torch.uint8)
 
         batches = []
         for i in range(0, width, args.stride):
@@ -177,25 +190,33 @@ if __name__ == '__main__':
             windows = []
 
             for (i, j) in batch:
-                window = [infile_ds.read(ch + 1, window=Window(i, j, args.window_size,args.window_size)).astype(np.float32) for ch in channel_order]
+                window = [
+                    infile_ds.read(ch + 1,
+                                   window=Window(i, j, args.window_size,
+                                                 args.window_size)).astype(
+                                                     np.float32)
+                    for ch in channel_order
+                ]
                 window = np.stack(window, axis=0)
-                if window.shape[-1] != args.window_size or window.shape[-2] != args.window_size:
+                if window.shape[-1] != args.window_size or window.shape[
+                        -2] != args.window_size:
                     continue
                 windows.append(window)
                 ijs.append((i, j))
 
             if len(windows) > 0:
                 windows = np.stack(windows, axis=0)
-                windows = torch.from_numpy(windows).to(dtype=torch.float32, device=args.device)
+                windows = torch.from_numpy(windows).to(dtype=torch.float32,
+                                                       device=args.device)
                 raws = [model(windows) for model in models]
                 probs = [raw.softmax(dim=1) for raw in raws]
                 prob = sum(probs) / len(probs)
                 prob = prob.cpu()
                 for k, (i, j) in enumerate(ijs):
                     ar_out[:, j:(j + args.window_size),
-                        i:(i + args.window_size)] += prob[k, ...]  # sic
+                           i:(i + args.window_size)] += prob[k, ...]  # sic
                     pixel_hits[:, j:(j + args.window_size),
-                        i:(i + args.window_size)] += 1
+                               i:(i + args.window_size)] += 1
 
     ar_out = ar_out.numpy()
     pixel_hits = pixel_hits.numpy()
