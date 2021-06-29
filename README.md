@@ -39,20 +39,18 @@ docker run -it --rm \
 
 ## Build Docker Image ##
 
-(Note that the file `catalog.json`, which is necessary for building the image and training, is not currently checked into this repository.)
-
 ```bash
-docker build -t cloud-model -f Dockerfile .
+docker build -t azavea-cloud-model-training -f Dockerfile .
 ```
 
 ## Run Container ##
 
 ```bash
 docker run -it --rm \
-       --name cloud-model --runtime=nvidia \
+       --name azavea-cloud-model-training --runtime=nvidia \
        --shm-size 16G \
        -v $HOME/.aws:/root/.aws:ro \
-       cloud-model bash
+       azavea-cloud-model-training bash
 ```
 
 ## Invoke Raster-Vision ##
@@ -80,7 +78,7 @@ rastervision run inprocess /workdir/pipeline.py \
 LEVEL='L1C' ; \
 ROOT="s3://bucket/prefix" ; \
 rastervision run batch /workdir/pipeline.py \
-       -a root_uri ${ROOT}/0 \
+       -a root_uri ${ROOT}/xxx \
        -a analyze_uri ${ROOT}/${LEVEL}/analyze \
        -a chip_uri ${ROOT}/${LEVEL}/chips \
        -a json catalogs.json \

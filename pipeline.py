@@ -84,7 +84,7 @@ def hrefs_to_sceneconfig(
         class_id_filter_dict: Dict[int, str],
         extent_crop: Optional[CropOffsets] = None) -> SceneConfig:
 
-    transformers = [CastTransformerConfig(to_dtype='np.float16')]
+    transformers = [CastTransformerConfig(to_dtype='float16')]
     image_source = RasterioSourceConfig(
         uris=[imagery],
         allow_streaming=True,
@@ -254,6 +254,10 @@ def get_config(runner,
         force_reload=False,
         entrypoint_kwargs={})
 
+    data = SemanticSegmentationImageDataConfig(
+        img_sz=chip_sz,
+        num_workers=0,
+        preview_batch_limit=8)
     backend = PyTorchSemanticSegmentationConfig(
         model=model,
         solver=SolverConfig(lr=1e-4,
@@ -263,8 +267,7 @@ def get_config(runner,
                             ignore_last_class='force'),
         log_tensorboard=False,
         run_tensorboard=False,
-        num_workers=0,
-        preview_batch_limit=8)
+        data=data)
 
     chip_options = SemanticSegmentationChipOptions(
         window_method=SemanticSegmentationWindowMethod.sliding, stride=chip_sz)
