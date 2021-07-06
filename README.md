@@ -58,7 +58,8 @@ docker run -it --rm \
 ### Local ###
 
 ```bash
-ROOT=/tmp/xxx ; \
+export AWS_REQUEST_PAYER=requester
+export ROOT=/tmp/xxx
 rastervision run inprocess /workdir/pipeline.py \
        -a root_uri ${ROOT} \
        -a analyze_uri ${ROOT}/analyze \
@@ -72,11 +73,14 @@ rastervision run inprocess /workdir/pipeline.py \
 
 ### On AWS ###
 
+It is helpful to have a compute environment with [additional storage](https://aws.amazon.com/premiumsupport/knowledge-center/batch-ebs-volumes-launch-template/) for the `p3.2xlarge` instances (the large number of chips will not fit on a volume of the default size).
+
 #### Chip ####
 
 ```bash
-LEVEL='L1C' ; \
-ROOT="s3://bucket/prefix" ; \
+export AWS_REQUEST_PAYER='requester'
+export LEVEL='L1C'
+export ROOT='s3://bucket/prefix'
 rastervision run batch /workdir/pipeline.py \
        -a root_uri ${ROOT}/xxx \
        -a analyze_uri ${ROOT}/${LEVEL}/analyze \
@@ -90,9 +94,9 @@ rastervision run batch /workdir/pipeline.py \
 #### Train ####
 
 ```bash
-LEVEL='L1C' ; \
-ARCH=cheaplab ; \
-ROOT="s3://bucket/prefix" ; \
+export LEVEL='L1C'
+export ARCH='cheaplab'
+export ROOT='s3://bucket/prefix'
 rastervision run batch /workdir/pipeline.py \
        -a root_uri ${ROOT}/${ARCH}-${LEVEL} \
        -a analyze_uri ${ROOT}/${LEVEL}/analyze \

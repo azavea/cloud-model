@@ -4,3 +4,6 @@ gpu_job_def=raster-vision-jmcclain-gpu
 cpu_job_queue=mcclain-cpu
 cpu_job_def=raster-vision-jmcclain-cpu
 attempts=1
+
+[AWS_S3]
+requester_pays = True
