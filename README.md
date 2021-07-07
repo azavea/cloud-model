@@ -8,14 +8,14 @@ Either build the docker image or pull it from quay.io.
 
 ### Build ###
 
-Note that the model bundles necessary to build this image are not currently checked into this repository.
-The models can be obtained by typing the following.
+Note that the model bundles necessary to build this image are not checked into this repository.
+The model bundless can be obtained by typing the following.
 ```bash
 cd inference/
-aws s3 sync s3://azavea-cloud-model/models models --request-payer requester --dryrun
+aws s3 sync s3://azavea-cloud-model/models models --request-payer requester
 ```
 
-The docker image can be built by typing the following (with or without the change of directory).
+The docker image can be built by typing the following (with or without the change of directory, as appropriate).
 ```bash
 cd inference/
 docker build -f Dockerfile -t quay.io/jmcclain/cloud-model:latest .
