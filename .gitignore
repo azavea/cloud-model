@@ -1,6 +1,5 @@
-models/
 __pycache__/
-ids.txt
 catalogs.json
 *.tif
 *.tar
+*.zip

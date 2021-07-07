@@ -8,10 +8,17 @@ Either build the docker image or pull it from quay.io.
 
 ### Build ###
 
-(Note that the model bundles necessary to build this image are not currently checked into this repository.)
-
+Note that the model bundles necessary to build this image are not currently checked into this repository.
+The models can be obtained by typing the following.
 ```bash
-docker build -f Dockerfile.inference -t quay.io/jmcclain/cloud-model:latest .
+cd inference/
+aws s3 sync s3://azavea-cloud-model/models models --request-payer requester --dryrun
+```
+
+The docker image can be built by typing the following (with or without the change of directory).
+```bash
+cd inference/
+docker build -f Dockerfile -t quay.io/jmcclain/cloud-model:latest .
 ```
 
 ### Pull from quay.io ###
@@ -23,6 +30,7 @@ docker pull quay.io/jmcclain/cloud-model:latest
 ## Perform Inference ##
 
 ```bash
+cd inference/
 docker run -it --rm \
        --runtime=nvidia --shm-size 16G \
        -v $HOME/Desktop/imagery:/input:ro \
@@ -39,20 +47,20 @@ docker run -it --rm \
 
 ## Build Docker Image ##
 
-(Note that the file `catalog.json`, which is necessary for building the image and training, is not currently checked into this repository.)
-
 ```bash
-docker build -t cloud-model -f Dockerfile .
+cd training/
+docker build -t azavea-cloud-model-training -f Dockerfile .
 ```
 
 ## Run Container ##
 
 ```bash
+cd training/
 docker run -it --rm \
-       --name cloud-model --runtime=nvidia \
+       --name azavea-cloud-model-training --runtime=nvidia \
        --shm-size 16G \
        -v $HOME/.aws:/root/.aws:ro \
-       cloud-model bash
+       azavea-cloud-model-training bash
 ```
 
 ## Invoke Raster-Vision ##
@@ -60,7 +68,8 @@ docker run -it --rm \
 ### Local ###
 
 ```bash
-ROOT=/tmp/xxx ; \
+export AWS_REQUEST_PAYER=requester
+export ROOT=/tmp/xxx
 rastervision run inprocess /workdir/pipeline.py \
        -a root_uri ${ROOT} \
        -a analyze_uri ${ROOT}/analyze \
@@ -74,13 +83,16 @@ rastervision run inprocess /workdir/pipeline.py \
 
 ### On AWS ###
 
+It is required to have a compute environment with [additional storage](https://aws.amazon.com/premiumsupport/knowledge-center/batch-ebs-volumes-launch-template/) for the `p3.2xlarge` batch instance that is used for training.  (The large number of chips will not fit on a volume of the default size.)
+
 #### Chip ####
 
 ```bash
-LEVEL='L1C' ; \
-ROOT="s3://bucket/prefix" ; \
+export AWS_REQUEST_PAYER='requester'
+export LEVEL='L1C'
+export ROOT='s3://bucket/prefix'
 rastervision run batch /workdir/pipeline.py \
-       -a root_uri ${ROOT}/0 \
+       -a root_uri ${ROOT}/xxx \
        -a analyze_uri ${ROOT}/${LEVEL}/analyze \
        -a chip_uri ${ROOT}/${LEVEL}/chips \
        -a json catalogs.json \
@@ -92,9 +104,9 @@ rastervision run batch /workdir/pipeline.py \
 #### Train ####
 
 ```bash
-LEVEL='L1C' ; \
-ARCH=cheaplab ; \
-ROOT="s3://bucket/prefix" ; \
+export LEVEL='L1C'
+export ARCH='cheaplab'
+export ROOT='s3://bucket/prefix'
 rastervision run batch /workdir/pipeline.py \
        -a root_uri ${ROOT}/${ARCH}-${LEVEL} \
        -a analyze_uri ${ROOT}/${LEVEL}/analyze \
