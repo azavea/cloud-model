@@ -116,3 +116,9 @@ rastervision run batch /workdir/pipeline.py \
        -a architecture ${ARCH} \
        train
 ```
+
+# Licenses #
+
+The code in this repository is licensed under the terms given in the [LICENSE.md](LICENSE.md) file.
+
+The dataset is licensed under the terms of the [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
