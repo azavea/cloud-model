@@ -1,23 +1,51 @@
 # flake8: noqa
 
-import hashlib
-from functools import partial
+# The MIT License (MIT)
+# =====================
+#
+# Copyright © 2020-2023
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the “Software”), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
-from pystac import STAC_IO, Catalog
+import hashlib
+import json
+from functools import partial
+from typing import Dict, List, Optional, Sequence, Tuple, Union
+
+import rasterio as rio
+from pystac import Catalog
+from pystac.stac_io import DefaultStacIO, StacIO
 from rastervision.core.backend import *
-from rastervision.core.data import *
 from rastervision.core.data import (
-    ClassConfig, DatasetConfig, GeoJSONVectorSourceConfig,
-    RasterioSourceConfig, RasterizedSourceConfig, RasterizerConfig,
-    SceneConfig, SemanticSegmentationLabelSourceConfig, CastTransformerConfig)
+    CastTransformerConfig, ClassConfig, ClassInferenceTransformerConfig,
+    DatasetConfig, GeoJSONVectorSourceConfig, RasterioSourceConfig,
+    RasterizedSourceConfig, RasterizerConfig, SceneConfig,
+    SemanticSegmentationLabelSourceConfig)
 from rastervision.core.rv_pipeline import *
 from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 from rastervision.pytorch_backend import *
 from rastervision.pytorch_learner import *
 
-
-def noop_write_method(uri, txt):
-    pass
+# rastervision run inprocess ./pipeline.py -a root_uri ${ROOT} -a analyze_uri ${ROOT}/analyze -a chip_uri ${ROOT}/chips -a json_catalog catalogs.json -a epochs 2 -a batch_sz 2 -a small_test True chip
 
 
 def pystac_workaround(uri):
@@ -28,12 +56,18 @@ def pystac_workaround(uri):
         uri = uri.replace('/vsitar/vsigzip/', '/vsitar/vsigzip//')
 
     return uri
-    return VsiFileSystem.read_str(uri)
 
 
-STAC_IO.read_text_method = \
-    lambda uri: VsiFileSystem.read_str(pystac_workaround(uri))
-STAC_IO.write_text_method = noop_write_method
+class CustomStacIO(DefaultStacIO):
+
+    def read_text(self, source, *args, **kwargs) -> str:
+        return VsiFileSystem.read_str(pystac_workaround(source))
+
+    def write_text(self, dest, txt, *args, **kwargs) -> None:
+        pass
+
+
+StacIO.set_default(CustomStacIO)
 
 
 def root_of_tarball(tarball: str) -> str:
@@ -67,36 +101,44 @@ def hrefs_from_catalog(catalog: Catalog) -> Tuple[str, str]:
     labels_item = next(labels.get_items())
     labels_href = pystac_workaround(
         next(iter(labels_item.assets.values())).href)
-
-    label_dict = labels_item.to_dict()
-    label_dict['properties']['class_id'] = None
-    aoi_geometries = [label_dict]
+    aoi_geometries = labels_href
 
     return (imagery_href, labels_href, aoi_geometries)
 
 
-def hrefs_to_sceneconfig(
-        imagery: str,
-        labels: Optional[str],
-        aoi: str,
-        name: str,
-        channel_order: Union[List[int], str],
-        class_id_filter_dict: Dict[int, str],
-        extent_crop: Optional[CropOffsets] = None) -> SceneConfig:
+def hrefs_to_sceneconfig(imagery: str,
+                         labels: Optional[str],
+                         aoi: str,
+                         name: str,
+                         channel_order: Union[List[int], str],
+                         class_id_filter_dict: Dict[int, str],
+                         extent_crop: Optional[Tuple] = None) -> SceneConfig:
 
-    transformers = [CastTransformerConfig(to_dtype='float16')]
+    image_transformers = [CastTransformerConfig(to_dtype='float16')]
+    with rio.open(imagery, 'r') as ds:
+        width = ds.width
+        height = ds.height
+    ymin = int(extent_crop[1] * width)
+    xmin = int(extent_crop[0] * height)
+    ymax = int(extent_crop[3] * width)
+    xmax = int(extent_crop[2] * height)
     image_source = RasterioSourceConfig(
         uris=[imagery],
         allow_streaming=True,
         channel_order=channel_order,
-        transformers=transformers,
-        extent_crop=extent_crop,
+        transformers=image_transformers,
+        bbox=[ymin, xmin, ymax, xmax],
     )
 
+    label_transformers = [
+        ClassInferenceTransformerConfig(
+            class_id_to_filter=class_id_filter_dict, default_class_id=1)
+    ]
     label_vector_source = GeoJSONVectorSourceConfig(
-        uri=labels,
-        class_id_to_filter=class_id_filter_dict,
-        default_class_id=1)
+        uris=[labels],
+        transformers=label_transformers,
+    )
+
     label_raster_source = RasterizedSourceConfig(
         vector_source=label_vector_source,
         rasterizer_config=RasterizerConfig(background_class_id=0,
@@ -104,21 +146,20 @@ def hrefs_to_sceneconfig(
     label_source = SemanticSegmentationLabelSourceConfig(
         raster_source=label_raster_source)
 
-    return SceneConfig(id=name,
-                       aoi_geometries=aoi,
-                       raster_source=image_source,
-                       label_source=label_source)
+    return SceneConfig(
+        id=name,
+        # aoi_uris=[aoi],  # XXX
+        raster_source=image_source,
+        label_source=label_source)
 
 
-def get_scenes(
-    json_file: str,
-    channel_order: Sequence[int],
-    class_config: ClassConfig,
-    class_id_filter_dict: dict,
-    level: str,
-    train_crops: List[CropOffsets] = [],
-    val_crops: List[CropOffsets] = []
-) -> Tuple[List[SceneConfig], List[SceneConfig]]:
+def get_scenes(json_file: str,
+               channel_order: Sequence[int],
+               class_config: ClassConfig,
+               class_id_filter_dict: dict,
+               level: str,
+               train_crops=[],
+               val_crops=[]) -> Tuple[List[SceneConfig], List[SceneConfig]]:
 
     assert (level in ['L1C', 'L2A'])
     train_scenes = []
@@ -154,7 +195,7 @@ def get_config(runner,
                root_uri,
                analyze_uri,
                chip_uri,
-               json,
+               json_catalog,
                chip_sz=512,
                batch_sz=32,
                epochs=33,
@@ -199,7 +240,7 @@ def get_config(runner,
             else:
                 train_crops.append(crop)
 
-    scenes = get_scenes(json,
+    scenes = get_scenes(json_catalog,
                         channel_order,
                         class_config,
                         class_id_filter_dict,
@@ -254,17 +295,18 @@ def get_config(runner,
         force_reload=False,
         entrypoint_kwargs={})
 
-    data = SemanticSegmentationImageDataConfig(
-        img_sz=chip_sz,
-        num_workers=0,
-        preview_batch_limit=8)
+    data = SemanticSegmentationImageDataConfig(img_sz=chip_sz,
+                                               num_workers=0,
+                                               preview_batch_limit=8)
     backend = PyTorchSemanticSegmentationConfig(
         model=model,
-        solver=SolverConfig(lr=1e-4,
-                            num_epochs=epochs,
-                            batch_sz=batch_sz,
-                            external_loss_def=external_loss_def,
-                            ignore_last_class='force'),
+        solver=SolverConfig(
+            lr=1e-4,
+            num_epochs=epochs,
+            batch_sz=batch_sz,
+            external_loss_def=external_loss_def,
+            ignore_class_index=2,
+        ),
         log_tensorboard=False,
         run_tensorboard=False,
         data=data)
@@ -272,14 +314,14 @@ def get_config(runner,
     chip_options = SemanticSegmentationChipOptions(
         window_method=SemanticSegmentationWindowMethod.sliding, stride=chip_sz)
 
-    return SemanticSegmentationConfig(root_uri=root_uri,
-                                      analyze_uri=analyze_uri,
-                                      chip_uri=chip_uri,
-                                      dataset=dataset,
-                                      backend=backend,
-                                      train_chip_sz=chip_sz,
-                                      predict_chip_sz=chip_sz,
-                                      chip_options=chip_options,
-                                      chip_nodata_threshold=.75,
-                                      img_format='npy',
-                                      label_format='npy')
+    return SemanticSegmentationConfig(
+        root_uri=root_uri,
+        analyze_uri=analyze_uri,
+        chip_uri=chip_uri,
+        dataset=dataset,
+        backend=backend,
+        train_chip_sz=chip_sz,
+        predict_chip_sz=chip_sz,
+        chip_options=chip_options,
+        chip_nodata_threshold=.75,
+    )
