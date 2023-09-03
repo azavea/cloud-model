@@ -2,161 +2,193 @@
     {
         "id": "1cfd0e19-56a6-471c-a682-46f1c762c4f9",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Tupelo_MS/3/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Tupelo_MS_3.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Tupelo_MS/3/L1C-0.tif"
     },
     {
         "id": "89b5c387-a370-4663-aa79-858d1c9bd622",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Tupelo_MS/2/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Tupelo_MS_2.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Tupelo_MS/2/L1C-0.tif"
     },
     {
         "id": "37f3c1d3-a8dd-4a96-822e-d787b0c66634",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Wellington/3/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Wellington_3.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Wellington/3/L1C-0.tif"
     },
     {
         "id": "d9d6a6d6-e45b-4f09-a902-666b0dabe815",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Sydney/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Sydney.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Sydney/L1C-0.tif"
     },
     {
         "id": "53b9b91b-63e8-48cf-b3b6-877750602e97",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Sydney/1/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Sydney_1.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Sydney/1/L1C-0.tif"
     },
     {
         "id": "c8c4ade5-5f63-40e0-b441-c67a355c3602",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Sydney/2/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Sydney_2.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Sydney/2/L1C-0.tif"
     },
     {
         "id": "a6de0505-06ca-4264-b11c-57d5c2ccdd04",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Sydney/3/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Sydney_3.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Sydney/3/L1C-0.tif"
     },
     {
         "id": "35e07f37-4a56-4e0a-9d6b-495b7d82e686",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Hobart/3/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Hobart_3.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Hobart/3/L1C-0.tif"
     },
     {
         "id": "c2cb6025-8a34-435f-8883-643a618065b5",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Hobart/2/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Hobart_2.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Hobart/2/L1C-0.tif"
     },
     {
         "id": "5920c861-b58a-4518-8804-793f941491aa",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Hobart/1/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Hobart_1.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Hobart/1/L1C-0.tif"
     },
     {
         "id": "582f3248-cbbc-49cd-ab4d-2ffc47cdcbcd",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Hobart/0/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Hobart_0.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Hobart/0/L1C-0.tif"
     },
     {
         "id": "479692a8-b096-4907-bf1f-e74969abca12",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Guam/3/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Guam_3.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Guam/3/L1C-0.tif"
     },
     {
         "id": "7b5c8255-c6f9-4109-9e3f-f55c549e3dd4",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Bozeman_MT/3/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Bozeman_MT_3.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Bozeman_MT/3/L1C-0.tif"
     },
     {
         "id": "815f0a68-b6ea-4c7f-8b04-d5e96166e14a",
         "catalog": "s3://azavea-cloud-model/3rd_Strike/Bozeman_MT/2/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Bozeman_MT_2.geojson",
         "imagery": "s3://azavea-cloud-model/3rd_Strike/Bozeman_MT/2/L1C-0.tif"
     },
     {
         "id": "f65fbe7d-a780-4bd2-81ea-bfdaec786987",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Vladivostok/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Vladivostok.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Vladivostok/L1C-0.tif"
     },
     {
         "id": "93fdf4b8-d84d-45f8-96f4-3a65893a1dad",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Palmyra/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Palmyra.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Palmyra/L1C-0.tif"
     },
     {
         "id": "ceae3751-9b87-4af5-985b-70eb0d16b740",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Oak_Island/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Oak_Island.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Oak_Island/L1C-0.tif"
     },
     {
         "id": "861eab97-61ad-4af3-a2b3-ee2e0ef8bcec",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Ibadan/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Ibadan.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Ibadan/L1C-0.tif"
     },
     {
         "id": "ea4d7608-4c4f-460d-ba98-da33b3c299bb",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Caracas/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Caracas.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Caracas/L1C-0.tif"
     },
     {
         "id": "b38bb327-f01f-4fd8-876e-edd77c95bb20",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Baghdad/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Baghdad.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Baghdad/L1C-0.tif"
     },
     {
         "id": "ee5c6555-d4d5-4a93-a68a-ad26e34ad5ab",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Area_51/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Area_51.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Area_51/L1C-0.tif"
     },
     {
         "id": "57afd882-3ba3-4218-ba90-de39fb06ef45",
         "catalog": "s3://azavea-cloud-model/2nd_Impact/Anchorage_AK/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Anchorage_AK.geojson",
         "imagery": "s3://azavea-cloud-model/2nd_Impact/Anchorage_AK/L1C-0.tif"
     },
     {
         "id": "b5a6f822-5884-4972-a98f-dfc958c66356",
         "catalog": "s3://azavea-cloud-model/New_Generation/Timbuktu/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Timbuktu.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Timbuktu/L1C-0.tif"
     },
     {
         "id": "2c15843a-1020-4db4-8705-8bdbdf5008a9",
         "catalog": "s3://azavea-cloud-model/New_Generation/Tiwanaku/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Tiwanaku.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Tiwanaku/L1C-0.tif"
     },
     {
         "id": "7b70c6ac-a3b8-4414-9a3c-15aa564b45cb",
         "catalog": "s3://azavea-cloud-model/New_Generation/Newgrange/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Newgrange.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Newgrange/L1C-0.tif"
     },
     {
         "id": "50803343-9001-46f9-8180-adfe4a4463c3",
         "catalog": "s3://azavea-cloud-model/New_Generation/Mohenjo-daro/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Mohenjo-daro.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Mohenjo-daro/L1C-0.tif"
     },
     {
         "id": "6eae6d3e-da26-4783-be2b-a333e844c588",
         "catalog": "s3://azavea-cloud-model/New_Generation/Giza/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Giza.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Giza/L1C-0.tif"
     },
     {
         "id": "0fd1bd23-6802-4cda-a3d9-dd1680397beb",
         "catalog": "s3://azavea-cloud-model/New_Generation/Magic_Kingdom/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Magic_Kingdom/L1C-0.tif"
     },
     {
         "id": "59082646-e55b-4d15-9b2d-e816e8e4b6c4",
         "catalog": "s3://azavea-cloud-model/New_Generation/Charlston_SC/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Charlston_SC.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Charlston_SC/L1C-0.tif"
     },
     {
         "id": "f9622bbc-0623-473a-9c43-f8ea6a691c2f",
         "catalog": "s3://azavea-cloud-model/New_Generation/Center/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Center.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Center/L1C-0.tif"
     },
     {
         "id": "0e01d544-64bf-4b28-84f6-39299e247290",
         "catalog": "s3://azavea-cloud-model/New_Generation/Berlin/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Berlin.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Berlin/L1C-0.tif"
     },
     {
         "id": "93a518c9-ada3-4f02-8461-336450bba530",
         "catalog": "s3://azavea-cloud-model/New_Generation/Angkor_Wat/catalog.zip",
+	"aoi": "s3://azavea-cloud-model/AOI/Angkor_Wat.geojson",
         "imagery": "s3://azavea-cloud-model/New_Generation/Angkor_Wat/L1C-0.tif"
     }
 ]
