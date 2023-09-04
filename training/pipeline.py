@@ -101,9 +101,8 @@ def hrefs_from_catalog(catalog: Catalog) -> Tuple[str, str]:
     labels_item = next(labels.get_items())
     labels_href = pystac_workaround(
         next(iter(labels_item.assets.values())).href)
-    aoi_geometries = labels_href
 
-    return (imagery_href, labels_href, aoi_geometries)
+    return (imagery_href, labels_href)
 
 
 def hrefs_to_sceneconfig(imagery: str,
@@ -148,12 +147,12 @@ def hrefs_to_sceneconfig(imagery: str,
 
     return SceneConfig(
         id=name,
-        # aoi_uris=[aoi],  # XXX
+        aoi_uris=[aoi],
         raster_source=image_source,
         label_source=label_source)
 
 
-def get_scenes(json_file: str,
+def get_scenes(json_catalog_list: str,
                channel_order: Sequence[int],
                class_config: ClassConfig,
                class_id_filter_dict: dict,
@@ -164,18 +163,20 @@ def get_scenes(json_file: str,
     assert (level in ['L1C', 'L2A'])
     train_scenes = []
     val_scenes = []
-    with open(json_file, 'r') as f:
-        for catalog_imagery in json.load(f):
-            catalog = catalog_imagery.get('catalog')
+    with open(json_catalog_list, 'r') as f:
+        for catalog_list_item in json.load(f):
+            catalog = catalog_list_item.get('catalog')
             catalog = catalog.strip()
             catalog = catalog.replace("s3://", "/vsizip/vsis3/")
-            _, labels, aoi = hrefs_from_catalog(
+            _, labels, hrefs_from_catalog(
                 Catalog.from_file(root_of_tarball(catalog)))
-            imagery = catalog_imagery.get('imagery')
+            imagery = catalog_list_item.get('imagery')
             imagery = imagery.replace('L1C-0.tif', f"{level}-0.tif")
+            aoi = catalog_list_item.get('aoi')
             h = hashlib.sha256(catalog.encode()).hexdigest()
             print('imagery', imagery)
             print('labels', labels)
+            print('aoi', aoi)
             make_scene = partial(hrefs_to_sceneconfig,
                                  imagery=imagery,
                                  labels=labels,
@@ -195,7 +196,7 @@ def get_config(runner,
                root_uri,
                analyze_uri,
                chip_uri,
-               json_catalog,
+               json_catalog_list,
                chip_sz=512,
                batch_sz=32,
                epochs=33,
@@ -240,7 +241,7 @@ def get_config(runner,
             else:
                 train_crops.append(crop)
 
-    scenes = get_scenes(json_catalog,
+    scenes = get_scenes(json_catalog_list,
                         channel_order,
                         class_config,
                         class_id_filter_dict,
