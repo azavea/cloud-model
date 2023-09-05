@@ -35,11 +35,14 @@ import rasterio as rio
 from pystac import Catalog
 from pystac.stac_io import DefaultStacIO, StacIO
 from rastervision.core.backend import *
-from rastervision.core.data import (
-    CastTransformerConfig, ClassConfig, ClassInferenceTransformerConfig,
-    DatasetConfig, GeoJSONVectorSourceConfig, RasterioSourceConfig,
-    RasterizedSourceConfig, RasterizerConfig, SceneConfig,
-    SemanticSegmentationLabelSourceConfig)
+from rastervision.core.box import Box
+from rastervision.core.data import (CastTransformerConfig, ClassConfig,
+                                    ClassInferenceTransformerConfig,
+                                    DatasetConfig, GeoJSONVectorSourceConfig,
+                                    RasterioSourceConfig,
+                                    RasterizedSourceConfig, RasterizerConfig,
+                                    SceneConfig,
+                                    SemanticSegmentationLabelSourceConfig)
 from rastervision.core.rv_pipeline import *
 from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 from rastervision.pytorch_backend import *
@@ -146,11 +149,10 @@ def hrefs_to_sceneconfig(imagery: str,
     label_source = SemanticSegmentationLabelSourceConfig(
         raster_source=label_raster_source)
 
-    return SceneConfig(
-        id=name,
-        aoi_uris=[aoi],
-        raster_source=image_source,
-        label_source=label_source)
+    return SceneConfig(id=name,
+                       aoi_uris=[aoi],
+                       raster_source=image_source,
+                       label_source=label_source)
 
 
 def get_scenes(json_catalog_list: str,
