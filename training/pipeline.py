@@ -45,7 +45,7 @@ from rastervision.gdal_vsi.vsi_file_system import VsiFileSystem
 from rastervision.pytorch_backend import *
 from rastervision.pytorch_learner import *
 
-# rastervision run inprocess ./pipeline.py -a root_uri ${ROOT} -a analyze_uri ${ROOT}/analyze -a chip_uri ${ROOT}/chips -a json_catalog catalogs.json -a epochs 2 -a batch_sz 2 -a small_test True chip
+# rastervision run inprocess ./pipeline.py -a root_uri ${ROOT} -a analyze_uri ${ROOT}/analyze -a chip_uri ${ROOT}/chips -a json_catalog_list catalogs.json -a epochs 2 -a batch_sz 2 -a small_test True chip
 
 
 def pystac_workaround(uri):
@@ -114,19 +114,20 @@ def hrefs_to_sceneconfig(imagery: str,
                          extent_crop: Optional[Tuple] = None) -> SceneConfig:
 
     image_transformers = [CastTransformerConfig(to_dtype='float16')]
-    with rio.open(imagery, 'r') as ds:
+    with rio.open(pystac_workaround(imagery), 'r') as ds:
         width = ds.width
         height = ds.height
     ymin = int(extent_crop[1] * width)
     xmin = int(extent_crop[0] * height)
     ymax = int(extent_crop[3] * width)
     xmax = int(extent_crop[2] * height)
+    bbox = Box(ymin, xmin, ymax, xmax)
     image_source = RasterioSourceConfig(
         uris=[imagery],
         allow_streaming=True,
         channel_order=channel_order,
         transformers=image_transformers,
-        bbox=[ymin, xmin, ymax, xmax],
+        bbox=bbox,
     )
 
     label_transformers = [
@@ -164,11 +165,11 @@ def get_scenes(json_catalog_list: str,
     train_scenes = []
     val_scenes = []
     with open(json_catalog_list, 'r') as f:
-        for catalog_list_item in json.load(f):
+        for catalog_list_item in json.load(f):  # XXX
             catalog = catalog_list_item.get('catalog')
             catalog = catalog.strip()
             catalog = catalog.replace("s3://", "/vsizip/vsis3/")
-            _, labels, hrefs_from_catalog(
+            _, labels = hrefs_from_catalog(
                 Catalog.from_file(root_of_tarball(catalog)))
             imagery = catalog_list_item.get('imagery')
             imagery = imagery.replace('L1C-0.tif', f"{level}-0.tif")
@@ -204,6 +205,11 @@ def get_config(runner,
                small_test=False,
                architecture='cheaplab',
                level='L1C'):
+
+    import sys, pdb
+    def excepthook(type, value, tb):
+        pdb.post_mortem(tb)
+    sys.excepthook = excepthook
 
     chip_sz = int(chip_sz)
     epochs = int(epochs)
